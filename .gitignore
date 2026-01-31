@@ -68,3 +68,5 @@ out/
 # Temporary folders
 tmp/
 temp/
+dist/
+*.tsbuildinfo
