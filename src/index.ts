@@ -1,17 +1,13 @@
-import express, { Request, Response } from 'express';
-import dotenv from 'dotenv';
+import express from 'express';
 import { CONSTS } from './utils/env';
-
-dotenv.config();
+import { get_status } from './routes/get_status';
 
 const app = express();
 const PORT = CONSTS.PORT || 3000;
 
 app.use(express.json());
 
-app.get('/status', (req: Request, res: Response) => {
-  res.send('Server Express con TypeScript funziona!');
-});
+app.use(get_status);
 
 app.listen(PORT, () => {
   console.log(`Server in ascolto sulla porta ${PORT}`);

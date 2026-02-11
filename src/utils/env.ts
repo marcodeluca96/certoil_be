@@ -1,4 +1,9 @@
-export const CONSTS ={
+import dotenv from 'dotenv';
+
+dotenv.config({ path: '.env.local' });
+dotenv.config();
+
+export const CONSTS = {
     PORT: process.env.PORT || 3000,
     NODE_ENV: process.env.NODE_ENV || 'development',
 }
