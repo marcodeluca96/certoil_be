@@ -1,0 +1,31 @@
+meta {
+  name: dynamic
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{base_url}}/dynamic
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "content": "61651655",
+    "metadata": "Document v1",
+    "description": "desc",
+    "transferLock": {
+      "unlockAt": 1764654
+    }
+  }
+}
+
+body:multipart-form {
+  file: @file(C:\Users\marco\Downloads\pdfbase.pdf)
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

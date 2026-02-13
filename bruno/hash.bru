@@ -1,0 +1,20 @@
+meta {
+  name: hash
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{base_url}}/hash
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  file: @file(C:\Users\marco\Downloads\pdfbase.pdf)
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

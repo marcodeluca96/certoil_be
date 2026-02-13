@@ -1,0 +1,20 @@
+meta {
+  name: /wallet/info
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{base_url}}/wallet/info
+  body: none
+  auth: inherit
+}
+
+body:multipart-form {
+  file: @file(C:\Users\marco\Downloads\pdfbase.pdf)
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
