@@ -49,7 +49,10 @@ export class NotarizationService {
         return this.notarizationClient;
     }
 
-    private getReadOnly(): NotarizationClientReadOnly {
+    private async getReadOnly(): Promise<NotarizationClientReadOnly> {
+        if (!this.notarizationClient) {
+            await this.initializeClients();
+        }
         if (!this.notarizationClient) {
             throw new Error("Notarization client not initialized");
         }
@@ -190,7 +193,7 @@ export class NotarizationService {
 
     // Check if destruction is allowed before attempting to destroy
     async canDestroyNotarization(notarizationId: string): Promise<boolean> {
-        const readOnly = this.getReadOnly();
+        const readOnly = await this.getReadOnly();
         return await readOnly.isDestroyAllowed(notarizationId);
     }
 
@@ -216,7 +219,7 @@ export class NotarizationService {
 
     // Get Notarization Details
     async getNotarizationDetails(notarizationId: string): Promise<any> {
-        const readOnly = this.getReadOnly();
+        const readOnly = await this.getReadOnly();
 
         const [
             state,
@@ -261,7 +264,7 @@ export class NotarizationService {
 
     // Verify Notarization
     async verifyNotarization(notarizationId: string, expectedContent: string): Promise<any> {
-        const readOnly = this.getReadOnly();
+        const readOnly = await this.getReadOnly();
 
         try {
             const state = await readOnly.state(notarizationId);

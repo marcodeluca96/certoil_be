@@ -1,11 +1,11 @@
 meta {
-  name: dynamic
+  name: /:notarizationId
   type: http
-  seq: 6
+  seq: 9
 }
 
-post {
-  url: {{base_url}}/dynamic
+get {
+  url: {{base_url}}/44f6c000335707f9d32e8f49e91bbeb169507ac5b2ccff8d7c89ba95814cdbbd
   body: json
   auth: inherit
 }
@@ -13,11 +13,7 @@ post {
 body:json {
   {
     "content": "e58406acf65b98b783ece4f61bf0c32328322fe3db6169a9f80b9065971cee40",
-    "metadata": "Document v1",
-    "description": "desc",
-    "timelock": {
-      "unlock_at": 1770999107143
-    }
+    "metadata": "Document v2"
   }
 }
 
