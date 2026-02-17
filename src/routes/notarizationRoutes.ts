@@ -1,7 +1,11 @@
 import { Router } from "express";
 import { NotarizationController } from "../controllers/notarizationController";
 import multer from "multer";
-const upload = multer({ limits: { fileSize: 10 * 1024 * 1024 } }); // 10 MB limit
+import { CONSTS } from "../utils/env";
+const upload = multer({
+  limits: { fileSize: 10 * 1024 * 1024 },
+  dest: CONSTS.UPLOAD_DOC_PATH,
+}); // 10 MB limit
 
 const router = Router();
 const controller = new NotarizationController();

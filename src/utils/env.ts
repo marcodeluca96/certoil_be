@@ -10,4 +10,5 @@ export const CONSTS = {
     NETWORK_URL: process.env.NETWORK_URL || '',
     PRIVATE_KEY: process.env.PRIVATE_KEY || '',
     IOTA_NET: process.env.IOTA_NET || 'localnet',
+    UPLOAD_DOC_PATH: process.env.UPLOAD_DOC_PATH || './uploads',
 }
