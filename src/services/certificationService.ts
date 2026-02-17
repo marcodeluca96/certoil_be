@@ -1,18 +1,24 @@
 import { NotarizationService } from "./notarizationService";
 import { CompanyService } from "./companyService";
 import { DocumentService } from "./documentService";
+import { pool } from "../db/connection";
 import { CompanyDTO, OilDataDTO } from "../types/models";
-import { isExpired, isValidISODate } from "../utils/DateUtils";
+import { isExpired, isValidISODate, isoToMySQLDate } from "../utils/DateUtils";
+import { generateSafeUniqueCode } from "../utils/generateCodeUtils";
+import { OilDataService } from "./oilDataService";
+import { RowDataPacket } from "mysql2";
 
 export class CertificationService {
   private notarizationService: NotarizationService;
   private companyService: CompanyService;
   private documentService: DocumentService;
+  private oilDataService: OilDataService;
 
   constructor() {
     this.notarizationService = new NotarizationService();
     this.companyService = new CompanyService();
     this.documentService = new DocumentService();
+    this.oilDataService = new OilDataService();
   }
 
   /**
@@ -28,31 +34,101 @@ export class CertificationService {
     certificationExpireDate: string,
     certificationNote: string | null,
     oilData: string,
+    document: Express.Multer.File,
   ): Promise<{ success: boolean; message: string | null }> {
     const {
       success,
       message,
       companyData: companyDataParsed,
       oilData: oilDataParsed,
-    } = this.checkMissingFields(companyData, certificationExpireDate, certificationNote, oilData);
+    } = this.checkMissingFields(companyData, certificationExpireDate, oilData);
     if (!success) {
       return {
         success: false,
         message: message,
       };
     }
+    const connection = await pool.getConnection();
 
-    const company = await this.companyService.createCompany(companyDataParsed!);
-    if (!company.success) {
+    const companyResult = await this.companyService.createCompany(
+      companyDataParsed!,
+      connection as any,
+    );
+    if (!companyResult.success || !companyResult.companyId) {
       return {
         success: false,
-        message: company.message,
+        message: companyResult.message,
       };
     }
-    return {
-      success: true,
-      message: "Certification created successfully",
-    };
+    const companyId = companyResult.companyId;
+
+    try {
+      await connection.beginTransaction();
+
+      const certificationCode = await generateSafeUniqueCode(async (code) => {
+        const [rows] = await connection.query<RowDataPacket[]>(
+          "SELECT code FROM certifications WHERE code = ? LIMIT 1",
+          [code],
+        );
+        return rows.length > 0;
+      });
+      const expiryDateMySQL = isoToMySQLDate(certificationExpireDate);
+
+      const [certResult] = await connection.execute(
+        `INSERT INTO certifications (company_id, code, expiry_date, note) 
+         VALUES (?, ?, ?, ?)`,
+        [companyId, certificationCode, expiryDateMySQL, certificationNote || null],
+      );
+
+      const certificationId = (certResult as any).insertId;
+
+      const docResult = await this.documentService.saveDocument(
+        companyId,
+        certificationId,
+        document,
+        connection as any,
+      );
+
+      if (!docResult.success) {
+        return {
+          success: false,
+          message: docResult.message,
+        };
+      }
+
+      // Save Oil Data
+      if (oilDataParsed && oilDataParsed.length > 0) {
+        const oilResult = await this.oilDataService.saveOilData(
+          companyId,
+          certificationId,
+          oilDataParsed,
+          connection as any,
+        );
+
+        if (!oilResult.success) {
+          return {
+            success: false,
+            message: oilResult.message,
+          };
+        }
+      }
+
+      await connection.commit();
+
+      return {
+        success: true,
+        message: "Certification created successfully",
+      };
+    } catch (error: any) {
+      await connection.rollback();
+      console.error("Error creating certification:", error);
+      return {
+        success: false,
+        message: "Database error: " + error.message,
+      };
+    } finally {
+      connection.release();
+    }
   }
 
   /**
@@ -66,7 +142,6 @@ export class CertificationService {
   private checkMissingFields(
     companyData: string,
     certificationExpireDate: string,
-    certificationNote: string | null,
     oilData: string,
   ): {
     success: boolean;

@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { SubmitCertificationRequest } from "../types/models";
 import { CertificationService } from "../services/certificationService";
 
 const certificationService = new CertificationService();
@@ -22,6 +21,7 @@ export class CertificationController {
         certificationExpireDate,
         certificationNote,
         oilData,
+        document as Express.Multer.File,
       );
 
       if (!success) {

@@ -3,6 +3,7 @@ import { CONSTS } from "./utils/env";
 import { get_status } from "./routes/get_status";
 import { notarizationRoutes } from "./routes/notarizationRoutes";
 import { certificationRoutes } from "./routes/certificationRoutes";
+import { checkDatabaseConnection } from "./db/connection";
 
 const app = express();
 const PORT = CONSTS.PORT || 3000;
@@ -23,8 +24,9 @@ app.use((error: any, req: any, res: any, next: any) => {
   });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Server in ascolto sulla porta ${PORT}`);
   console.log(`📡 Connected to network: ${CONSTS.IOTA_NET}`);
   console.log(`🔗 Package ID: ${process.env.IOTA_NOTARIZATION_PKG_ID}`);
+  await checkDatabaseConnection();
 });

@@ -1,14 +1,19 @@
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 
-dotenv.config({ path: '.env.local' });
+dotenv.config({ path: ".env.local" });
 dotenv.config();
 
 export const CONSTS = {
-    PORT: process.env.PORT || 3000,
-    NODE_ENV: process.env.NODE_ENV || 'development',
-    IOTA_NOTARIZATION_PKG_ID: process.env.IOTA_NOTARIZATION_PKG_ID || '',
-    NETWORK_URL: process.env.NETWORK_URL || '',
-    PRIVATE_KEY: process.env.PRIVATE_KEY || '',
-    IOTA_NET: process.env.IOTA_NET || 'localnet',
-    UPLOAD_DOC_PATH: process.env.UPLOAD_DOC_PATH || './uploads',
-}
+  PORT: process.env.PORT || 3000,
+  NODE_ENV: process.env.NODE_ENV || "development",
+  IOTA_NOTARIZATION_PKG_ID: process.env.IOTA_NOTARIZATION_PKG_ID || "",
+  NETWORK_URL: process.env.NETWORK_URL || "",
+  PRIVATE_KEY: process.env.PRIVATE_KEY || "",
+  IOTA_NET: process.env.IOTA_NET || "localnet",
+  UPLOAD_DOC_PATH: process.env.UPLOAD_DOC_PATH || "./uploads",
+  MYSQL_HOST: process.env.MYSQL_HOST,
+  MYSQL_USER: process.env.MYSQL_USER,
+  MYSQL_PASSWORD: process.env.MYSQL_PASSWORD,
+  MYSQL_DATABASE: process.env.MYSQL_DATABASE,
+  MYSQL_PORT: process.env.MYSQL_PORT ? parseInt(process.env.MYSQL_PORT) : 3306,
+};
