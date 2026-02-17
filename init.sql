@@ -1,0 +1,62 @@
+CREATE TABLE IF NOT EXISTS companies (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  company_name VARCHAR(200) NOT NULL,
+  address VARCHAR(200) NOT NULL,
+  zip_code VARCHAR(10) NOT NULL,
+  city VARCHAR(100) NOT NULL,
+  province VARCHAR(100) NOT NULL,
+  vat_number VARCHAR(100) NOT NULL,
+  tax_code VARCHAR(100) NOT NULL,
+  email VARCHAR(150) UNIQUE NOT NULL,
+  certified_email VARCHAR(150) UNIQUE NULL,
+  phone_number VARCHAR(20) NULL,
+  website VARCHAR(200) NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS certifications (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  company_id INT NOT NULL,
+  code VARCHAR(200) NOT NULL,
+  expiry_date DATE NOT NULL,
+  note VARCHAR(200) NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (company_id) REFERENCES companies(id)
+);
+
+CREATE TABLE IF NOT EXISTS documents (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    company_id INT NOT NULL,
+    certification_id INT NOT NULL,
+    document_name VARCHAR(200) NOT NULL,
+    document_path VARCHAR(200) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (company_id) REFERENCES companies(id),
+    FOREIGN KEY (certification_id) REFERENCES certifications(id)
+);
+
+CREATE TABLE IF NOT EXISTS oil_data (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    company_id INT NOT NULL,
+    certification_id INT NOT NULL,
+    oil_data_name VARCHAR(200) NOT NULL,
+    oil_data_value VARCHAR(200) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (company_id) REFERENCES companies(id),
+    FOREIGN KEY (certification_id) REFERENCES certifications(id)
+);
+
+CREATE TABLE IF NOT EXISTS iota_certifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    certification_id INT NOT NULL,
+    transactionDigest VARCHAR(300) NULL,
+    notarizationId VARCHAR(300) NULL,
+    note VARCHAR(200) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (certification_id) REFERENCES certifications(id)
+);
