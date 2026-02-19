@@ -2,11 +2,11 @@ import { NotarizationService } from "./notarizationService";
 import { CompanyService } from "./companyService";
 import { DocumentService } from "./documentService";
 import { pool } from "../db/connection";
-import { CompanyDTO, OilDataDTO } from "../types/models";
-import { isExpired, isValidISODate, isoToMilliseconds, isoToMySQLDate } from "../utils/DateUtils";
+import { CertificationSearchDTO, CompanyDTO, OilDataDTO } from "../types/models";
+import { isExpired, isValidISODate, isoToMySQLDate, isoToUnixSeconds } from "../utils/DateUtils";
 import { generateSafeUniqueCode } from "../utils/generateCodeUtils";
 import { OilDataService } from "./oilDataService";
-import { RowDataPacket } from "mysql2";
+import { QueryResult, RowDataPacket } from "mysql2";
 import { CryptoUtils } from "../utils/crypto";
 
 export class CertificationService {
@@ -131,7 +131,7 @@ export class CertificationService {
         hash,
         metadata || "",
         description,
-        { unlockAt: isoToMilliseconds(certificationExpireDate)! },
+        { unlockAt: isoToUnixSeconds(certificationExpireDate)! },
       );
 
       //saving the notarization id in the certification table
@@ -229,5 +229,112 @@ export class CertificationService {
       companyData: companyDataParsed,
       oilData: oilDataParsed,
     };
+  }
+
+  async getAllCertifications(page: number = 1, limit: number = 10) {
+    try {
+      const pageNumber = page;
+      const limitNumber = limit;
+      const offset = (pageNumber - 1) * limitNumber;
+
+      const connection = await pool.getConnection();
+
+      const [certificationsToFind] = await connection.query<RowDataPacket[]>(
+        `
+        SELECT id
+        FROM certifications
+        ORDER BY created_at DESC
+        LIMIT ? OFFSET ?
+        `,
+        [limitNumber, offset],
+      );
+
+      const [rows] = await connection.query<RowDataPacket[]>(
+        `SELECT
+          c.id AS company_id,
+          c.company_name ,
+          od.name AS oil_data_name,
+          od.value AS oil_data_value,
+          od.unit AS oil_data_unit,
+          c2.id AS certification_id,
+          c2.code AS certification_code,
+          c2.created_at AS certification_created_at,
+          d.document_path AS document_path,
+          ic.notarizationId AS notarization_id
+        FROM
+          companies c
+        INNER JOIN oil_data od
+          ON
+          od.company_id = c.id
+        INNER JOIN certifications c2
+          ON
+          c2.company_id = c.id
+          AND od.certification_id =c2.id
+        INNER JOIN documents d
+          ON
+          d.company_id = c.id
+          AND d.certification_id = c2.id
+        INNER JOIN iota_certifications ic
+          ON
+          ic.certification_id = c2.id 
+        WHERE c2.id IN (?)
+        `,
+        [certificationsToFind.map((cert) => cert.id)],
+      );
+
+      // map rows to CertificationSearchDTO
+      // group by certification id
+      const certifications: CertificationSearchDTO[] = rows.reduce(
+        (acc: CertificationSearchDTO[], row: any) => {
+          const existingCertification = acc.find(
+            (cert) => cert.certificationId === row.certification_id,
+          );
+          if (existingCertification) {
+            existingCertification.oilData.push({
+              formattedValue: `${row.oil_data_name}: ${row.oil_data_value} ${row.oil_data_unit}`,
+              data: {
+                name: row.oil_data_name,
+                value: row.oil_data_value,
+                unit: row.oil_data_unit,
+              },
+            });
+          } else {
+            acc.push({
+              certificationId: row.certification_id,
+              companyName: row.company_name,
+              companyId: row.company_id,
+              oilData: [
+                {
+                  formattedValue: `${row.oil_data_name}: ${row.oil_data_value} ${row.oil_data_unit}`,
+                  data: {
+                    name: row.oil_data_name,
+                    value: row.oil_data_value,
+                    unit: row.oil_data_unit,
+                  },
+                },
+              ],
+              certificationCode: row.certification_code,
+              certificationCreatedAt: row.certification_created_at,
+              documentPath: row.document_path,
+              notarizationId: row.notarization_id,
+            });
+          }
+          return acc;
+        },
+        [],
+      );
+
+      return {
+        success: true,
+        message: "Certifications fetched successfully",
+        data: certifications,
+      };
+    } catch (error: any) {
+      console.error("Error fetching certifications:", error);
+      return {
+        success: false,
+        message: "Error fetching certifications: " + error.message,
+      };
+    }
   }
 }

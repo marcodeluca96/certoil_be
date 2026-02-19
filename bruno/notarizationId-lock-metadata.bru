@@ -1,0 +1,27 @@
+meta {
+  name: /:notarizationId/lock-metadata
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{base_url}}/iota/e7a8ca5dde0bda28f8059d1df02024e5ad5065425399596539c1b5f6f5618ffd/lock-metadata
+  body: none
+  auth: inherit
+}
+
+body:json {
+  {
+    "content": "e58406acf65b98b783ece4f61bf0c32328322fe3db6169a9f80b9065971cee40",
+    "metadata": "Document v2"
+  }
+}
+
+body:multipart-form {
+  file: @file(C:\Users\marco\Downloads\pdfbase.pdf)
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

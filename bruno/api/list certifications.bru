@@ -1,13 +1,18 @@
 meta {
-  name: crea cert
+  name: list certifications
   type: http
-  seq: 11
+  seq: 2
 }
 
-post {
-  url: {{base_url}}/api/certifications
-  body: multipartForm
+get {
+  url: {{base_url}}/api/certifications?page=1&limit=10
+  body: none
   auth: inherit
+}
+
+params:query {
+  page: 1
+  limit: 10
 }
 
 body:json {
@@ -51,7 +56,7 @@ body:json {
 body:multipart-form {
   oilData: [{"name":"Acidità","value":"0.4","unit":"%"},{"name":"Perossidi","value":"5.2","unit":"meq O2/kg"},{"name":"Polifenoli","value":"350","unit":"mg/kg"}]
   companyData: {"companyName":"Oleificio Rossi S.r.l.","address":"Via delle Olive 42","zipCode":"50100","city":"Firenze","province":"FI","vatNumber":"IT12345678901","taxCode":"12345678901","email":"info@oleificiorossi.it","certifiedEmail":"amministrazione@pec.oleificiorossi.it","phoneNumber":"+39 055 1234567","website":"https://www.oleificiorossi.it"}
-  certificationExpireDate: 2026-03-31T00:00:00.000Z
+  certificationExpireDate: 2026-02-31T00:00:00.000Z
   certificationNote: Certificazione di qualità extra vergine - Lotto A123
   document: @file(C:\Users\marco\Downloads\pdfbase.pdf)
 }

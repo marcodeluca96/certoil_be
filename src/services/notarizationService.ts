@@ -7,6 +7,7 @@ import {
 import { WalletService } from "./walletService";
 import { CONSTS } from "../utils/env";
 import { IotaLockedResponse } from "../types/iota";
+import { unixSecondsToISO } from "../utils/DateUtils";
 
 export class NotarizationService {
   private walletService: WalletService;
@@ -273,6 +274,29 @@ export class NotarizationService {
         expectedContent,
         actualContent,
         match: actualContent === expectedContent,
+      };
+    } catch (error) {
+      return {
+        verified: false,
+        notarizationId,
+        error: "Notarization not found or inaccessible",
+      };
+    }
+  }
+
+  // Get Lock metadata
+  async getLockMetaData(notarizationId: string): Promise<any> {
+    const readOnly = await this.getReadOnly();
+
+    try {
+      const state = await readOnly.lockMetadata(notarizationId);
+      const deleteLockTimestamp = state?.deleteLock.args;
+      const deleteLockDate = unixSecondsToISO(deleteLockTimestamp);
+
+      return {
+        notarizationId,
+        deleteLockDate,
+        state,
       };
     } catch (error) {
       return {

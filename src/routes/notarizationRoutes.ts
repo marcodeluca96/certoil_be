@@ -24,6 +24,7 @@ router.post("/:notarizationId/transfer", controller.transferNotarization.bind(co
 router.delete("/:notarizationId", controller.destroyNotarization.bind(controller));
 
 // Query Operations - PARAMETERIZED ROUTES LAST
+router.get("/:notarizationId/lock-metadata", controller.getLockMetaData.bind(controller));
 router.get("/:notarizationId", controller.getDetails.bind(controller));
 router.post("/verify", controller.verify.bind(controller));
 

@@ -347,4 +347,30 @@ export class NotarizationController {
       });
     }
   }
+
+  async getLockMetaData(req: Request, res: Response) {
+    try {
+      const { notarizationId } = req.params;
+
+      if (!notarizationId) {
+        return res.status(400).json({
+          success: false,
+          error: "notarizationId is required",
+        });
+      }
+
+      const lockMetaData = await notarizationService.getLockMetaData(notarizationId as string);
+
+      res.json({
+        success: true,
+        ...lockMetaData,
+      });
+    } catch (error: any) {
+      console.error("Get lock metadata error:", error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  }
 }

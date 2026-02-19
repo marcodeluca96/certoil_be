@@ -25,3 +25,14 @@ export interface CompanyDTO {
   phoneNumber?: string | null;
   website?: string | null;
 }
+
+export interface CertificationSearchDTO {
+  companyId: number;
+  companyName: string;
+  oilData: { formattedValue: string; data: OilDataDTO }[];
+  certificationId: number;
+  certificationCode: string;
+  certificationCreatedAt: string;
+  documentPath: string;
+  notarizationId: string;
+}

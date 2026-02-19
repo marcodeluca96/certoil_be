@@ -190,18 +190,16 @@ export function formatItalianDate(
   return `${day}/${month}/${year} ${hours}:${mins}`;
 }
 
-// ─────────────────────────────────────────────────────────────
-// FRONTEND → MILLISECONDS
-// ─────────────────────────────────────────────────────────────
-
-/**
- * Converte una data ISO in millisecondi.
- * "2026-12-31T00:00:00.000Z" → 489841656
- */
-export function isoToMilliseconds(
-  isoString: ISODateString | null | undefined,
-): DataInMilliseconds | null {
+/** Converte data ISO in UNIX secondi */
+export function isoToUnixSeconds(isoString: ISODateString | null | undefined): number | null {
   if (!isoString) return null;
   const date = new Date(isoString);
-  return isNaN(date.getTime()) ? null : date.getTime();
+  return isNaN(date.getTime()) ? null : Math.floor(date.getTime() / 1000);
+}
+
+/** Converte da UNIX secondi a data ISO */
+export function unixSecondsToISO(unixSeconds: number | null | undefined): ISODateString | null {
+  if (!unixSeconds) return null;
+  const date = new Date(unixSeconds * 1000);
+  return isNaN(date.getTime()) ? null : date.toISOString();
 }
