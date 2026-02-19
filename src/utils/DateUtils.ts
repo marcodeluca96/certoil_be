@@ -20,6 +20,9 @@ type MySQLDateTime = string;
 /** Formato DATE MySQL: "2026-12-31" */
 type MySQLDate = string;
 
+/** Formato in millisecondi: "489841656" */
+type DataInMilliseconds = number;
+
 // ─────────────────────────────────────────────────────────────
 // FRONTEND → MYSQL
 // ─────────────────────────────────────────────────────────────
@@ -185,4 +188,20 @@ export function formatItalianDate(
   const hours = String(date.getUTCHours()).padStart(2, "0");
   const mins = String(date.getUTCMinutes()).padStart(2, "0");
   return `${day}/${month}/${year} ${hours}:${mins}`;
+}
+
+// ─────────────────────────────────────────────────────────────
+// FRONTEND → MILLISECONDS
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Converte una data ISO in millisecondi.
+ * "2026-12-31T00:00:00.000Z" → 489841656
+ */
+export function isoToMilliseconds(
+  isoString: ISODateString | null | undefined,
+): DataInMilliseconds | null {
+  if (!isoString) return null;
+  const date = new Date(isoString);
+  return isNaN(date.getTime()) ? null : date.getTime();
 }

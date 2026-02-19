@@ -3,7 +3,7 @@ import { CompanyService } from "./companyService";
 import { DocumentService } from "./documentService";
 import { pool } from "../db/connection";
 import { CompanyDTO, OilDataDTO } from "../types/models";
-import { isExpired, isValidISODate, isoToMySQLDate } from "../utils/DateUtils";
+import { isExpired, isValidISODate, isoToMilliseconds, isoToMySQLDate } from "../utils/DateUtils";
 import { generateSafeUniqueCode } from "../utils/generateCodeUtils";
 import { OilDataService } from "./oilDataService";
 import { RowDataPacket } from "mysql2";
@@ -131,6 +131,7 @@ export class CertificationService {
         hash,
         metadata || "",
         description,
+        { unlockAt: isoToMilliseconds(certificationExpireDate)! },
       );
 
       //saving the notarization id in the certification table
