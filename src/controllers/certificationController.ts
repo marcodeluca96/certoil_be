@@ -37,7 +37,7 @@ export class CertificationController {
         success: true,
         message,
         data: {
-          notarizationId: `${protocol}://${host}/iota/${data?.notarizationId}`,
+          iotaVerificationUrl: `${protocol}://${host}/iota/${data?.notarizationId}`,
         },
       });
     } catch (error) {
