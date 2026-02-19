@@ -16,7 +16,7 @@ export class CertificationController {
       const { companyData, certificationExpireDate, oilData, certificationNote = null } = req.body;
 
       //check mandatory fields
-      const { success, message } = await certificationService.createCertification(
+      const { success, message, data } = await certificationService.createCertification(
         companyData,
         certificationExpireDate,
         certificationNote,
@@ -31,9 +31,14 @@ export class CertificationController {
         });
       }
 
+      const protocol = req.protocol;
+      const host = req.get("host");
       return res.status(200).json({
         success: true,
         message,
+        data: {
+          notarizationId: `${protocol}://${host}/iota/${data?.notarizationId}`,
+        },
       });
     } catch (error) {
       console.error(error);

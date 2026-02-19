@@ -6,6 +6,7 @@ import { CertificationController } from "../controllers/certificationController"
 const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
   dest: CONSTS.UPLOAD_DOC_PATH,
+  storage: multer.memoryStorage(),
 }); // 10 MB limit
 
 const router = Router();

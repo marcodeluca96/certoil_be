@@ -7,6 +7,7 @@ import { isExpired, isValidISODate, isoToMySQLDate } from "../utils/DateUtils";
 import { generateSafeUniqueCode } from "../utils/generateCodeUtils";
 import { OilDataService } from "./oilDataService";
 import { RowDataPacket } from "mysql2";
+import { CryptoUtils } from "../utils/crypto";
 
 export class CertificationService {
   private notarizationService: NotarizationService;
@@ -35,7 +36,7 @@ export class CertificationService {
     certificationNote: string | null,
     oilData: string,
     document: Express.Multer.File,
-  ): Promise<{ success: boolean; message: string | null }> {
+  ): Promise<{ success: boolean; message: string | null; data?: { notarizationId: string } }> {
     const {
       success,
       message,
@@ -113,18 +114,46 @@ export class CertificationService {
         }
       }
 
+      const fileBuffer = document.buffer;
+      const hash = CryptoUtils.computeFileHash(fileBuffer);
+
+      // Validate content is a valid SHA-256 hash
+      if (!CryptoUtils.isValidSHA256Hash(hash)) {
+        return {
+          success: false,
+          message: "content must be a valid SHA-256 hash (64 hex characters)",
+        };
+      }
+
+      const metadata = certificationCode;
+      const description = `Certification ${certificationCode} of ${companyDataParsed!.companyName}`;
+      const result = await this.notarizationService.createLockedNotarization(
+        hash,
+        metadata || "",
+        description,
+      );
+
+      //saving the notarization id in the certification table
+      await connection.execute(
+        `INSERT INTO iota_certifications (certification_id, transactionDigest, notarizationId, note) VALUES (?, ?, ?, ?)`,
+        [certificationId, result.transactionDigest, result.notarizationId, ""],
+      );
+
       await connection.commit();
 
       return {
         success: true,
         message: "Certification created successfully",
+        data: {
+          notarizationId: result.notarizationId,
+        },
       };
     } catch (error: any) {
       await connection.rollback();
       console.error("Error creating certification:", error);
       return {
         success: false,
-        message: "Database error: " + error.message,
+        message: "Error creating certification: " + error.message,
       };
     } finally {
       connection.release();

@@ -11,7 +11,7 @@ const PORT = CONSTS.PORT || 3000;
 app.use(express.json());
 
 app.use(get_status);
-app.use(notarizationRoutes);
+app.use("/iota", notarizationRoutes);
 app.use("/api/certifications", certificationRoutes);
 
 // Error handling middleware

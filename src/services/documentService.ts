@@ -26,9 +26,8 @@ export class DocumentService {
       const safeFileName = `${companyId}_${certificationId}_${Date.now()}${fileExt}`;
       const finalPath = path.join(uploadDir, safeFileName);
 
-      // Move the file from temp/upload path to final destination
-      // Using rename (move) since multer already saved it to a temp path
-      fs.renameSync(document.path, finalPath);
+      //save document in file system
+      fs.writeFileSync(finalPath, document.buffer);
 
       const connection = externalConnection || (await pool.getConnection());
 
