@@ -16,4 +16,10 @@ export const CONSTS = {
   MYSQL_PASSWORD: process.env.MYSQL_PASSWORD,
   MYSQL_DATABASE: process.env.MYSQL_DATABASE,
   MYSQL_PORT: process.env.MYSQL_PORT ? parseInt(process.env.MYSQL_PORT) : 3306,
+  CERTIFICATES_PNG_PATH: process.env.CERTIFICATES_PNG_PATH || "./uploads/certificates",
+  BASE_URL: process.env.BASE_URL || "http://localhost",
 };
+
+export function getBaseUrl() {
+  return CONSTS.BASE_URL + ":" + CONSTS.PORT;
+}

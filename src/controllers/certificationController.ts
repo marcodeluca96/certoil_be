@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { CertificationService } from "../services/certificationService";
+import { getBaseUrl } from "../utils/env";
 
 const certificationService = new CertificationService();
 
@@ -31,14 +32,10 @@ export class CertificationController {
         });
       }
 
-      const protocol = req.protocol;
-      const host = req.get("host");
       return res.status(200).json({
         success: true,
         message,
-        data: {
-          iotaVerificationUrl: `${protocol}://${host}/iota/${data?.notarizationId}`,
-        },
+        data,
       });
     } catch (error) {
       console.error(error);

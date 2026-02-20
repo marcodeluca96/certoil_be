@@ -13,6 +13,7 @@ app.use(express.json());
 app.use(get_status);
 app.use("/iota", notarizationRoutes);
 app.use("/api/certifications", certificationRoutes);
+app.use("/certificates", express.static(CONSTS.CERTIFICATES_PNG_PATH));
 
 // Error handling middleware
 app.use((error: any, req: any, res: any, next: any) => {

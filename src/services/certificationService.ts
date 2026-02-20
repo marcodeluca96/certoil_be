@@ -8,18 +8,23 @@ import { generateSafeUniqueCode } from "../utils/generateCodeUtils";
 import { OilDataService } from "./oilDataService";
 import { QueryResult, RowDataPacket } from "mysql2";
 import { CryptoUtils } from "../utils/crypto";
+import { CertificateGeneratorService } from "./certificateGeneratorService";
+import * as path from "path";
+import { CONSTS, getBaseUrl } from "../utils/env";
 
 export class CertificationService {
   private notarizationService: NotarizationService;
   private companyService: CompanyService;
   private documentService: DocumentService;
   private oilDataService: OilDataService;
+  private certificateGeneratorService: CertificateGeneratorService;
 
   constructor() {
     this.notarizationService = new NotarizationService();
     this.companyService = new CompanyService();
     this.documentService = new DocumentService();
     this.oilDataService = new OilDataService();
+    this.certificateGeneratorService = new CertificateGeneratorService();
   }
 
   /**
@@ -36,7 +41,11 @@ export class CertificationService {
     certificationNote: string | null,
     oilData: string,
     document: Express.Multer.File,
-  ): Promise<{ success: boolean; message: string | null; data?: { notarizationId: string } }> {
+  ): Promise<{
+    success: boolean;
+    message: string | null;
+    data?: any;
+  }> {
     const {
       success,
       message,
@@ -142,11 +151,27 @@ export class CertificationService {
 
       await connection.commit();
 
+      // Generate certification PNG
+      const outputDir = path.join(CONSTS.CERTIFICATES_PNG_PATH);
+      const { filePath: certificatePath } =
+        await this.certificateGeneratorService.generateCertificatePng(
+          {
+            companyData: companyDataParsed!,
+            oilData: oilDataParsed ?? [],
+            certificationCode,
+            certificationExpireDate,
+            certificationNote,
+          },
+          outputDir,
+        );
+
       return {
         success: true,
         message: "Certification created successfully",
         data: {
           notarizationId: result.notarizationId,
+          iotaVerificationUrl: `${getBaseUrl()}/iota/${result.notarizationId}`,
+          certificatePath: `${getBaseUrl()}/certificates/${certificationCode}.png`,
         },
       };
     } catch (error: any) {
