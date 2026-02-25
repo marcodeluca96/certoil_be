@@ -1,4 +1,4 @@
-import { createCanvas, CanvasRenderingContext2D } from "canvas";
+import { createCanvas, CanvasRenderingContext2D, loadImage } from "canvas";
 import * as fs from "fs";
 import * as path from "path";
 import { CompanyDTO, OilDataDTO } from "../types/models";
@@ -46,7 +46,7 @@ export class CertificateGeneratorService {
     this.drawBadge(ctx, data.certificationCode);
 
     // Content
-    this.drawTitle(ctx);
+    await this.drawTitle(ctx);
     this.drawCompanyName(ctx, data.companyData.companyName);
     this.drawDescription(ctx);
     this.drawCertificationDetails(ctx, data.companyData, data.certificationCode);
@@ -243,17 +243,31 @@ export class CertificateGeneratorService {
 
   // ── Title block ──────────────────────────────────────────────────────────────
 
-  private drawTitle(ctx: CanvasRenderingContext2D) {
+  private async drawTitle(ctx: CanvasRenderingContext2D) {
     // Shift right to clear the badge
-    const cx = this.WIDTH / 2 + 60;
+    const cx = this.WIDTH / 2;
 
     ctx.save();
 
-    // "CERTOIL"
-    ctx.font = "bold 100px serif";
-    ctx.fillStyle = this.GREEN_DARK;
-    ctx.textAlign = "center";
-    ctx.fillText("CERTOIL", cx, 150);
+    // Draw Logo instead of text
+    try {
+      const logoPath = path.join(process.cwd(), "assets", "certoil_logo.png");
+      const logo = await loadImage(logoPath);
+
+      // Calculate dimensions to fit nicely (original text was roughly 100px high)
+      const targetHeight = 120;
+      const aspectRatio = logo.width / logo.height;
+      const targetWidth = targetHeight * aspectRatio;
+
+      ctx.drawImage(logo, cx - targetWidth / 2, 60, targetWidth, targetHeight);
+    } catch (error) {
+      console.error("Error loading logo, falling back to text:", error);
+      // Fallback to "CERTOIL" text if image fails to load
+      ctx.font = "bold 100px serif";
+      ctx.fillStyle = this.GREEN_DARK;
+      ctx.textAlign = "center";
+      ctx.fillText("CERTOIL", cx, 150);
+    }
 
     // "OF QUALITY ANALYSIS" with decorative side lines
     const subtitle = "OF QUALITY ANALYSIS";
@@ -272,7 +286,7 @@ export class CertificateGeneratorService {
     ctx.lineTo(cx - sw / 2 - gap, lineY - 2);
     ctx.stroke();
 
-    ctx.fillText(subtitle, cx, lineY + 4);
+    ctx.fillText(subtitle, cx - sw / 2, lineY + 4);
 
     ctx.beginPath();
     ctx.moveTo(cx + sw / 2 + gap, lineY - 2);
