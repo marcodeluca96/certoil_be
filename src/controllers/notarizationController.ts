@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { NotarizationService } from "../services/notarizationService";
 import { CryptoUtils } from "../utils/crypto";
 import { CONSTS } from "../utils/env";
+import fs from "fs/promises";
+import path from "path";
 
 const notarizationService = new NotarizationService();
 
@@ -16,7 +18,8 @@ export class NotarizationController {
         });
       }
 
-      const fileBuffer = req.file.buffer;
+      const filePath = req.file.path;
+      const fileBuffer = await fs.readFile(filePath);
       const hash = CryptoUtils.computeFileHash(fileBuffer);
 
       res.json({
@@ -30,6 +33,14 @@ export class NotarizationController {
         success: false,
         error: error.message,
       });
+    } finally {
+      if (req.file) {
+        try {
+          await fs.unlink(req.file.path);
+        } catch (err) {
+          console.error("Failed to delete temp file:", err);
+        }
+      }
     }
   }
 
@@ -273,24 +284,26 @@ export class NotarizationController {
   // Verify Notarization
   async verify(req: Request, res: Response) {
     try {
-      const { notarizationId, expectedContent } = req.body;
-
-      if (!notarizationId || !expectedContent) {
+      if (!req.file) {
         return res.status(400).json({
           success: false,
-          error: "notarizationId and expectedContent are required",
+          error: "file is required (as multipart/form-data)",
+        });
+      }
+      const { notarizationId } = req.body;
+
+      if (!notarizationId) {
+        return res.status(400).json({
+          success: false,
+          error: "notarizationId is required",
         });
       }
 
-      // Validate expectedContent is a valid SHA-256 hash
-      if (!CryptoUtils.isValidSHA256Hash(expectedContent)) {
-        return res.status(400).json({
-          success: false,
-          error: "expectedContent must be a valid SHA-256 hash (64 hex characters)",
-        });
-      }
+      const filePath = req.file.path;
+      const fileBuffer = await fs.readFile(filePath);
+      const hash = CryptoUtils.computeFileHash(fileBuffer);
 
-      const result = await notarizationService.verifyNotarization(notarizationId, expectedContent);
+      const result = await notarizationService.verifyNotarization(notarizationId, hash);
 
       res.json({
         success: true,
@@ -302,6 +315,14 @@ export class NotarizationController {
         success: false,
         error: error.message,
       });
+    } finally {
+      if (req.file) {
+        try {
+          await fs.unlink(req.file.path);
+        } catch (err) {
+          console.error("Failed to delete temp file:", err);
+        }
+      }
     }
   }
 

@@ -11,6 +11,7 @@ export const CONSTS = {
   PRIVATE_KEY: process.env.PRIVATE_KEY || "",
   IOTA_NET: process.env.IOTA_NET || "localnet",
   UPLOAD_DOC_PATH: process.env.UPLOAD_DOC_PATH || "./uploads",
+  UPLOAD_TEMP_PATH: process.env.UPLOAD_TEMP_PATH || "./uploads/temp",
   MYSQL_HOST: process.env.MYSQL_HOST,
   MYSQL_USER: process.env.MYSQL_USER,
   MYSQL_PASSWORD: process.env.MYSQL_PASSWORD,

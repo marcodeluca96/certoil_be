@@ -4,8 +4,15 @@ import multer from "multer";
 import { CONSTS } from "../utils/env";
 const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
-  dest: CONSTS.UPLOAD_DOC_PATH,
-}); // 10 MB limit
+  dest: CONSTS.UPLOAD_TEMP_PATH,
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === "application/pdf") {
+      cb(null, true);
+    } else {
+      cb(new Error("Invalid file type"));
+    }
+  },
+});
 
 const router = Router();
 const controller = new NotarizationController();
@@ -31,6 +38,6 @@ router.get("/:notarizationId/lock-metadata", controller.getLockMetaData.bind(con
 // otteniamo info sul documento tra cui il contenuto presente in blockchain
 router.get("/:notarizationId", controller.getDetails.bind(controller));
 // verifichiamo integrità documento
-router.post("/verify", controller.verify.bind(controller));
+router.post("/verify", upload.single("file"), controller.verify.bind(controller));
 
 export { router as notarizationRoutes };
