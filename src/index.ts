@@ -4,10 +4,12 @@ import { get_status } from "./routes/get_status";
 import { notarizationRoutes } from "./routes/notarizationRoutes";
 import { certificationRoutes } from "./routes/certificationRoutes";
 import { checkDatabaseConnection } from "./db/connection";
+import cors from "cors";
 
 const app = express();
 const PORT = CONSTS.PORT || 3000;
 
+app.use(cors({ origin: "*" }));
 app.use(express.json());
 
 app.use(get_status);
