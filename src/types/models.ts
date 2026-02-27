@@ -33,6 +33,6 @@ export interface CertificationSearchDTO {
   certificationId: number;
   certificationCode: string;
   certificationCreatedAt: string;
-  documentPath: string;
+  certificatePath: string;
   notarizationId: string;
 }

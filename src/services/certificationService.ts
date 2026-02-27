@@ -340,8 +340,8 @@ export class CertificationService {
               ],
               certificationCode: row.certification_code,
               certificationCreatedAt: row.certification_created_at,
-              documentPath: row.document_path,
               notarizationId: row.notarization_id,
+              certificatePath: `${getBaseUrl()}/certificates/${row.certification_code}.png`,
             });
           }
           return acc;
