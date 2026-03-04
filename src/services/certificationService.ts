@@ -449,6 +449,8 @@ export class CertificationService {
               certificationCreatedAt: row.certification_created_at,
               notarizationId: row.notarization_id,
               certificatePath: `${getBaseUrl()}/certificates/${row.certification_code}.png`,
+              isExpired: false, // Default value
+              deleteLockDate: null, // Default value
             });
           }
           return acc;
@@ -456,10 +458,22 @@ export class CertificationService {
         [],
       );
 
+      const certification = certifications[0];
+
+      if (certification && certification.notarizationId) {
+        const lockMetaData = await this.notarizationService.getLockMetaData(
+          certification.notarizationId,
+        );
+        if (lockMetaData && lockMetaData.deleteLockDate) {
+          certification.deleteLockDate = lockMetaData.deleteLockDate;
+          certification.isExpired = isExpired(lockMetaData.deleteLockDate);
+        }
+      }
+
       return {
         success: true,
         message: "Certification fetched successfully",
-        data: certifications[0],
+        data: certification,
       };
     } catch (error: any) {
       console.error("Error fetching certification:", error);

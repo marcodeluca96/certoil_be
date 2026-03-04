@@ -55,4 +55,6 @@ export interface CertificationDetailDTO {
   certificationCreatedAt: string;
   certificatePath: string;
   notarizationId: string;
+  isExpired: boolean;
+  deleteLockDate: string | null;
 }
