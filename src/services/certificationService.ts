@@ -2,7 +2,12 @@ import { NotarizationService } from "./notarizationService";
 import { CompanyService } from "./companyService";
 import { DocumentService } from "./documentService";
 import { pool } from "../db/connection";
-import { CertificationSearchDTO, CompanyDTO, OilDataDTO } from "../types/models";
+import {
+  CertificationDetailDTO,
+  CertificationSearchDTO,
+  CompanyDTO,
+  OilDataDTO,
+} from "../types/models";
 import { isExpired, isValidISODate, isoToMySQLDate, isoToUnixSeconds } from "../utils/DateUtils";
 import { generateSafeUniqueCode } from "../utils/generateCodeUtils";
 import { OilDataService } from "./oilDataService";
@@ -278,6 +283,88 @@ export class CertificationService {
         `SELECT
           c.id AS company_id,
           c.company_name ,
+          c2.id AS certification_id,
+          c2.code AS certification_code,
+          c2.created_at AS certification_created_at,
+          d.document_path AS document_path,
+          ic.notarizationId AS notarization_id
+        FROM
+          companies c
+        INNER JOIN certifications c2
+          ON
+          c2.company_id = c.id
+        INNER JOIN documents d
+          ON
+          d.company_id = c.id
+          AND d.certification_id = c2.id
+        INNER JOIN iota_certifications ic
+          ON
+          ic.certification_id = c2.id 
+        WHERE c2.id IN (?)
+        `,
+        [certificationsToFind.map((cert) => cert.id)],
+      );
+
+      // map rows to CertificationSearchDTO
+      // group by certification id
+      const certifications: CertificationSearchDTO[] = rows.reduce(
+        (acc: CertificationSearchDTO[], row: any) => {
+          const existingCertification = acc.find(
+            (cert) => cert.certificationId === row.certification_id,
+          );
+          if (!existingCertification) {
+            acc.push({
+              certificationId: row.certification_id,
+              companyName: row.company_name,
+              companyId: row.company_id,
+              certificationCode: row.certification_code,
+              certificationCreatedAt: row.certification_created_at,
+              notarizationId: row.notarization_id,
+              certificatePath: `${getBaseUrl()}/certificates/${row.certification_code}.png`,
+            });
+          }
+          return acc;
+        },
+        [],
+      );
+
+      return {
+        success: true,
+        message: "Certifications fetched successfully",
+        data: certifications,
+      };
+    } catch (error: any) {
+      console.error("Error fetching certifications:", error);
+      return {
+        success: false,
+        message: "Error fetching certifications: " + error.message,
+      };
+    }
+  }
+  async getCertificationById(certificationId: number) {
+    try {
+      const connection = await pool.getConnection();
+
+      const [certificationsToFind] = await connection.query<RowDataPacket[]>(
+        `
+        SELECT id
+        FROM certifications
+        WHERE id = ?
+        `,
+        [certificationId],
+      );
+
+      if (certificationsToFind.length === 0) {
+        return {
+          success: false,
+          message: "Certification not found",
+        };
+      }
+
+      const [rows] = await connection.query<RowDataPacket[]>(
+        `SELECT
+          c.id AS company_id,
+          c.company_name ,
           od.name AS oil_data_name,
           od.value AS oil_data_value,
           od.unit AS oil_data_unit,
@@ -302,15 +389,15 @@ export class CertificationService {
         INNER JOIN iota_certifications ic
           ON
           ic.certification_id = c2.id 
-        WHERE c2.id IN (?)
+        WHERE c2.id = (?)
         `,
-        [certificationsToFind.map((cert) => cert.id)],
+        [certificationsToFind[0].id],
       );
 
       // map rows to CertificationSearchDTO
       // group by certification id
-      const certifications: CertificationSearchDTO[] = rows.reduce(
-        (acc: CertificationSearchDTO[], row: any) => {
+      const certifications: CertificationDetailDTO[] = rows.reduce(
+        (acc: CertificationDetailDTO[], row: any) => {
           const existingCertification = acc.find(
             (cert) => cert.certificationId === row.certification_id,
           );
@@ -351,14 +438,14 @@ export class CertificationService {
 
       return {
         success: true,
-        message: "Certifications fetched successfully",
+        message: "Certification fetched successfully",
         data: certifications,
       };
     } catch (error: any) {
-      console.error("Error fetching certifications:", error);
+      console.error("Error fetching certification:", error);
       return {
         success: false,
-        message: "Error fetching certifications: " + error.message,
+        message: "Error fetching certification: " + error.message,
       };
     }
   }

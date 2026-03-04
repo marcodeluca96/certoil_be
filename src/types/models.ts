@@ -29,6 +29,16 @@ export interface CompanyDTO {
 export interface CertificationSearchDTO {
   companyId: number;
   companyName: string;
+  // oilData: { formattedValue: string; data: OilDataDTO }[];
+  certificationId: number;
+  certificationCode: string;
+  certificationCreatedAt: string;
+  certificatePath: string;
+  notarizationId: string;
+}
+export interface CertificationDetailDTO {
+  companyId: number;
+  companyName: string;
   oilData: { formattedValue: string; data: OilDataDTO }[];
   certificationId: number;
   certificationCode: string;

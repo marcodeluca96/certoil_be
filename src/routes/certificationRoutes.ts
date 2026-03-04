@@ -14,5 +14,6 @@ const controller = new CertificationController();
 
 router.post("/", upload.single("document"), controller.createCertification.bind(controller));
 router.get("/", controller.getAllCertifications.bind(controller));
+router.get("/:certificationId", controller.getCertificationById.bind(controller));
 
 export { router as certificationRoutes };
