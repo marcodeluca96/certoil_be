@@ -365,6 +365,16 @@ export class CertificationService {
         `SELECT
           c.id AS company_id,
           c.company_name ,
+          c.address,
+          c.zip_code,
+          c.city,
+          c.province,
+          c.vat_number,
+          c.tax_code,
+          c.email,
+          c.certified_email,
+          c.phone_number,
+          c.website,
           od.name AS oil_data_name,
           od.value AS oil_data_value,
           od.unit AS oil_data_unit,
@@ -415,6 +425,16 @@ export class CertificationService {
               certificationId: row.certification_id,
               companyName: row.company_name,
               companyId: row.company_id,
+              address: row.address,
+              zipCode: row.zip_code,
+              city: row.city,
+              province: row.province,
+              vatNumber: row.vat_number,
+              taxCode: row.tax_code,
+              email: row.email,
+              certifiedEmail: row.certified_email,
+              phoneNumber: row.phone_number,
+              website: row.website,
               oilData: [
                 {
                   formattedValue: `${row.oil_data_name}: ${row.oil_data_value} ${row.oil_data_unit}`,
@@ -439,7 +459,7 @@ export class CertificationService {
       return {
         success: true,
         message: "Certification fetched successfully",
-        data: certifications,
+        data: certifications[0],
       };
     } catch (error: any) {
       console.error("Error fetching certification:", error);
