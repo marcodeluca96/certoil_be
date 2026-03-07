@@ -279,6 +279,14 @@ export class CertificationService {
         [limitNumber, offset],
       );
 
+      if(certificationsToFind.length===0){
+        return {
+        success: true,
+        message: "Certifications fetched successfully",
+        data: [],
+      };
+      }
+
       const [rows] = await connection.query<RowDataPacket[]>(
         `SELECT
           c.id AS company_id,
