@@ -5,6 +5,7 @@ import { notarizationRoutes } from "./routes/notarizationRoutes";
 import { certificationRoutes } from "./routes/certificationRoutes";
 import { checkDatabaseConnection } from "./db/connection";
 import cors from "cors";
+import { companyRoutes } from "./routes/companyRoutes";
 
 const app = express();
 const PORT = CONSTS.PORT || 3000;
@@ -22,6 +23,7 @@ app.use(get_status);
 app.use("/iota", notarizationRoutes);
 app.use("/api/certifications", certificationRoutes);
 app.use("/certificates", express.static(CONSTS.CERTIFICATES_PNG_PATH));
+app.use("/api/company", companyRoutes);
 
 // Error handling middleware
 app.use((error: any, req: any, res: any, next: any) => {
