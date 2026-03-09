@@ -58,3 +58,12 @@ export interface CertificationDetailDTO {
   isExpired: boolean;
   deleteLockDate: string | null;
 }
+
+export interface CertificationHistoryDTO {
+  certificationId: number;
+  certificationCode: string;
+  certificationCreatedAt: string;
+  certificatePath: string;
+  certificationNote: string | null;
+  certificationExpiryDate: string;
+}

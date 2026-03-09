@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { CertificationService } from "../services/certificationService";
-import { getBaseUrl } from "../utils/env";
 
 const certificationService = new CertificationService();
 
@@ -98,6 +97,43 @@ export class CertificationController {
       return res.status(500).json({
         success: false,
         error: error,
+      });
+    }
+  }
+
+  async getCertificationHistoryByCompanyId(req: Request, res: Response) {
+    try {
+      const { companyId } = req.params;
+      if (!companyId) {
+        return res.status(400).json({
+          success: false,
+          error: "companyId missing",
+        });
+      }
+
+      const { page, limit } = req.query as { page: string; limit: string };
+      const { success, message, data } = await certificationService.getCertificationsByCompanyId(
+        parseInt(companyId as string),
+        parseInt(page || "1"),
+        parseInt(limit || "10"),
+      );
+      if (!success) {
+        return res.status(400).json({
+          success: false,
+          error: message,
+        });
+      }
+      return res.status(200).json({
+        success: true,
+        message,
+        data,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        error: "Error loading certification history",
+        errorData: error,
       });
     }
   }

@@ -4,6 +4,7 @@ import { DocumentService } from "./documentService";
 import { pool } from "../db/connection";
 import {
   CertificationDetailDTO,
+  CertificationHistoryDTO,
   CertificationSearchDTO,
   CompanyDTO,
   OilDataDTO,
@@ -279,12 +280,12 @@ export class CertificationService {
         [limitNumber, offset],
       );
 
-      if(certificationsToFind.length===0){
+      if (certificationsToFind.length === 0) {
         return {
-        success: true,
-        message: "Certifications fetched successfully",
-        data: [],
-      };
+          success: true,
+          message: "Certifications fetched successfully",
+          data: [],
+        };
       }
 
       const [rows] = await connection.query<RowDataPacket[]>(
@@ -488,6 +489,55 @@ export class CertificationService {
       return {
         success: false,
         message: "Error fetching certification: " + error.message,
+      };
+    }
+  }
+
+  async getCertificationsByCompanyId(companyId: number, page: number, limit: number) {
+    try {
+      const pageNumber = page;
+      const limitNumber = limit;
+      const offset = (pageNumber - 1) * limitNumber;
+
+      const connection = await pool.getConnection();
+
+      const [rows] = await connection.query<RowDataPacket[]>(
+        `SELECT
+          c2.id AS certification_id,
+          c2.code AS certification_code,
+          c2.created_at AS certification_created_at,
+          c2.expiry_date AS certification_expiry_date,
+          c2.note AS certification_note,
+          d.document_path AS document_path
+        FROM certifications c2
+        INNER JOIN documents d
+          ON d.certification_id = c2.id
+        WHERE c2.company_id = (?)
+        ORDER BY c2.created_at DESC
+        LIMIT ? OFFSET ?
+        `,
+        [companyId, limitNumber, offset],
+      );
+
+      const certifications: CertificationHistoryDTO[] = rows.map((row: any) => ({
+        certificationId: row.certification_id,
+        certificationCode: row.certification_code,
+        certificationCreatedAt: row.certification_created_at,
+        certificationExpiryDate: row.certification_expiry_date,
+        certificationNote: row.certification_note,
+        certificatePath: `${getBaseUrl()}/certificates/${row.certification_code}.png`,
+      }));
+
+      return {
+        success: true,
+        message: "Company certifications history fetched successfully",
+        data: certifications,
+      };
+    } catch (error: any) {
+      console.error("Error fetching company certifications history:", error);
+      return {
+        success: false,
+        message: "Error fetching company certifications history: " + error.message,
       };
     }
   }
