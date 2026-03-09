@@ -497,6 +497,9 @@ export class CertificationService {
     companyId: number,
     page: number,
     limit: number,
+    sortBy?: string,
+    sortOrder?: string,
+    certificationCode?: string,
   ): Promise<{ success: boolean; message: string; data: CertificationHistoryDTO[] }> {
     try {
       const pageNumber = page;
@@ -505,8 +508,17 @@ export class CertificationService {
 
       const connection = await pool.getConnection();
 
-      const [rows] = await connection.query<RowDataPacket[]>(
-        `SELECT
+      // Whitelist for sorting
+      const validSortBy = ["createdAt", "expiryDate"];
+      const sortMap: { [key: string]: string } = {
+        createdAt: "c2.created_at",
+        expiryDate: "c2.expiry_date",
+      };
+      const finalSortBy = validSortBy.includes(sortBy || "") ? sortMap[sortBy!] : "c2.created_at";
+      const finalSortOrder = sortOrder?.toUpperCase() === "ASC" ? "ASC" : "DESC";
+
+      let query = `
+        SELECT
           c.id AS company_id,
           c.company_name,
           c2.id AS certification_id,
@@ -516,16 +528,22 @@ export class CertificationService {
           c2.note AS certification_note,
           d.document_path AS document_path
         FROM companies c 
-        INNER JOIN certifications c2
-          ON c2.company_id = c.id
-        INNER JOIN documents d
-          ON d.certification_id = c2.id
-        WHERE c.id = (?)
-        ORDER BY c2.created_at DESC
-        LIMIT ? OFFSET ?
-        `,
-        [companyId, limitNumber, offset],
-      );
+        INNER JOIN certifications c2 ON c2.company_id = c.id
+        INNER JOIN documents d ON d.certification_id = c2.id
+        WHERE c.id = ?
+      `;
+
+      const queryParams: any[] = [companyId];
+
+      if (certificationCode) {
+        query += ` AND c2.code LIKE ?`;
+        queryParams.push(`%${certificationCode}%`);
+      }
+
+      query += ` ORDER BY ${finalSortBy} ${finalSortOrder} LIMIT ? OFFSET ?`;
+      queryParams.push(limitNumber, offset);
+
+      const [rows] = await connection.query<RowDataPacket[]>(query, queryParams);
 
       const certifications: CertificationHistoryDTO[] = rows.map((row: any) => ({
         companyId: row.company_id,

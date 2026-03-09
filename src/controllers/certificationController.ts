@@ -111,11 +111,20 @@ export class CertificationController {
         });
       }
 
-      const { page, limit } = req.query as { page: string; limit: string };
+      const { page, limit, sortBy, sortOrder, certificationCode } = req.query as {
+        page: string;
+        limit: string;
+        sortBy: string;
+        sortOrder: string;
+        certificationCode: string;
+      };
       const { success, message, data } = await certificationService.getCertificationsByCompanyId(
         parseInt(companyId as string),
         parseInt(page || "1"),
         parseInt(limit || "10"),
+        sortBy,
+        sortOrder,
+        certificationCode,
       );
       if (!success) {
         return res.status(400).json({
