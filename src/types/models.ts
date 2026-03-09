@@ -60,6 +60,8 @@ export interface CertificationDetailDTO {
 }
 
 export interface CertificationHistoryDTO {
+  companyId: number;
+  companyName: string;
   certificationId: number;
   certificationCode: string;
   certificationCreatedAt: string;

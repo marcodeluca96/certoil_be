@@ -5,9 +5,14 @@ meta {
 }
 
 get {
-  url: {{base_url}}/api/certifications/history/1
+  url: {{base_url}}/api/certifications/history/1?page=1&limit=10
   body: none
   auth: inherit
+}
+
+params:query {
+  page: 1
+  limit: 10
 }
 
 body:json {

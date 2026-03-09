@@ -493,7 +493,11 @@ export class CertificationService {
     }
   }
 
-  async getCertificationsByCompanyId(companyId: number, page: number, limit: number) {
+  async getCertificationsByCompanyId(
+    companyId: number,
+    page: number,
+    limit: number,
+  ): Promise<{ success: boolean; message: string; data: CertificationHistoryDTO[] }> {
     try {
       const pageNumber = page;
       const limitNumber = limit;
@@ -503,16 +507,20 @@ export class CertificationService {
 
       const [rows] = await connection.query<RowDataPacket[]>(
         `SELECT
+          c.id AS company_id,
+          c.company_name,
           c2.id AS certification_id,
           c2.code AS certification_code,
           c2.created_at AS certification_created_at,
           c2.expiry_date AS certification_expiry_date,
           c2.note AS certification_note,
           d.document_path AS document_path
-        FROM certifications c2
+        FROM companies c 
+        INNER JOIN certifications c2
+          ON c2.company_id = c.id
         INNER JOIN documents d
           ON d.certification_id = c2.id
-        WHERE c2.company_id = (?)
+        WHERE c.id = (?)
         ORDER BY c2.created_at DESC
         LIMIT ? OFFSET ?
         `,
@@ -520,6 +528,8 @@ export class CertificationService {
       );
 
       const certifications: CertificationHistoryDTO[] = rows.map((row: any) => ({
+        companyId: row.company_id,
+        companyName: row.company_name,
         certificationId: row.certification_id,
         certificationCode: row.certification_code,
         certificationCreatedAt: row.certification_created_at,
@@ -538,6 +548,7 @@ export class CertificationService {
       return {
         success: false,
         message: "Error fetching company certifications history: " + error.message,
+        data: [],
       };
     }
   }
