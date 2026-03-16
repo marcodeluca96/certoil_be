@@ -51,10 +51,11 @@ export class CertificationController {
   async getAllCertifications(req: Request, res: Response) {
     try {
       const { page, limit } = req.query as { page: string; limit: string };
-      const { success, message, data } = await certificationService.getAllCertifications(
-        parseInt(page || "1"),
-        parseInt(limit || "10"),
-      );
+      const { success, message, data, totalCount } =
+        await certificationService.getAllCertifications(
+          parseInt(page || "1"),
+          parseInt(limit || "10"),
+        );
       if (!success) {
         return res.status(400).json({
           success: false,
@@ -64,6 +65,7 @@ export class CertificationController {
       return res.status(200).json({
         success: true,
         message,
+        totalCount,
         data,
       });
     } catch (error) {

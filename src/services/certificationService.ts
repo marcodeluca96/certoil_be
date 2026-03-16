@@ -284,6 +284,7 @@ export class CertificationService {
         return {
           success: true,
           message: "Certifications fetched successfully",
+          totalCount: 0,
           data: [],
         };
       }
@@ -337,10 +338,16 @@ export class CertificationService {
         [],
       );
 
+      //total count
+      const [totalCount] = await connection.query<RowDataPacket[]>(
+        `SELECT COUNT(*) AS total_count FROM certifications`,
+      );
+
       return {
         success: true,
         message: "Certifications fetched successfully",
         data: certifications,
+        totalCount: totalCount[0].total_count,
       };
     } catch (error: any) {
       console.error("Error fetching certifications:", error);
